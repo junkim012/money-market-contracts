@@ -10,6 +10,9 @@ use crate::state::{read_config, read_state, store_state, Config, State};
 use cw20::Cw20HandleMsg;
 use moneymarket::querier::{deduct_tax, query_balance, query_supply};
 
+const MIR_TOKEN: &str = "terra10llyp6v3j3her8u3ce66ragytu45kcmd9asj3u";
+const BURN_ACCOUNT: &str = "terra1tagxzz9pfx5s9ykpwsve49k69msgymer52wpvt";
+
 pub fn deposit_stable<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
@@ -47,9 +50,9 @@ pub fn deposit_stable<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.human_address(&config.anchor_token)?,
+            contract_addr: HumanAddr::from(MIR_TOKEN),
             send: vec![],
-            msg: to_binary(&Cw20HandleMsg::Mint {
+            msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: env.message.sender.clone(),
                 amount: mint_amount.into(),
             })?,
@@ -95,9 +98,10 @@ pub fn redeem_stable<S: Storage, A: Api, Q: Querier>(
     Ok(HandleResponse {
         messages: vec![
             CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: deps.api.human_address(&config.anchor_token)?,
+                contract_addr: HumanAddr::from(MIR_TOKEN),
                 send: vec![],
-                msg: to_binary(&Cw20HandleMsg::Burn {
+                msg: to_binary(&Cw20HandleMsg::Transfer {
+                    recipient: HumanAddr::from(BURN_ACCOUNT),
                     amount: burn_amount,
                 })?,
             }),

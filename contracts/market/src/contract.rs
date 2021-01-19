@@ -126,16 +126,10 @@ pub fn receive_cw20<S: Storage, A: Api, Q: Querier>(
     env: Env,
     cw20_msg: Cw20ReceiveMsg,
 ) -> HandleResult {
-    let contract_addr = env.message.sender.clone();
     if let Some(msg) = cw20_msg.msg {
         match from_binary(&msg)? {
             Cw20HookMsg::RedeemStable {} => {
                 // only asset contract can execute this message
-                let config: Config = read_config(&deps.storage)?;
-                if deps.api.canonical_address(&contract_addr)? != config.anchor_token {
-                    return Err(StdError::unauthorized());
-                }
-
                 redeem_stable(deps, env, cw20_msg.sender, cw20_msg.amount)
             }
         }
